@@ -13,5 +13,5 @@ create table refresh_tokens(
     revoked boolean default false,
     expires_at timestamp not null,
     created_at timestamp default current_timestamp,
-    foreign key (user_id) references users(id) on delete cascade,
+    foreign key (user_id) references users(id) on delete cascade
 ) engine = InnoDB;
