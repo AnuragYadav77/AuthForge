@@ -188,4 +188,36 @@ async function refresh(req, res) {
     }
 }
 
-module.exports = { signup, login, refresh };
+// POST /api/auth/logout
+async function logout(req, res) {
+    const rawToken = req.cookies?.refreshToken;
+
+    try {
+        // If a token exists, revoke it in the DB so it can't be replayed.
+        // If it doesn't exist (already logged out, cookie expired, etc.) we
+        // skip this step — logout is idempotent, not an error.
+        if (rawToken) {
+            const tokenHash = hashToken(rawToken);
+            await revokeToken(tokenHash);
+            // Note: if tokenHash doesn't match any row (already revoked, or garbage),
+            // revokeToken silently does nothing (affectedRows = 0). That's fine.
+        }
+
+        // Clear the cookie from the browser.
+        // Must use the same scope options (httpOnly, secure, sameSite) as when
+        // it was set — browsers won't honor clearCookie if the attributes don't match.
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+        });
+
+        return res.status(200).json({ message: 'Logged out successfully.' });
+
+    } catch (err) {
+        console.error('[logout] Unexpected error:', err);
+        return res.status(500).json({ message: 'Something went wrong. Please try again later.' });
+    }
+}
+
+module.exports = { signup, login, refresh, logout };
