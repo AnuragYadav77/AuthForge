@@ -106,7 +106,7 @@ async function login(req, res) {
         // sameSite strict: not sent on cross-site requests — blocks CSRF
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: REFRESH_TOKEN_EXPIRY_MS,
         });
@@ -175,7 +175,7 @@ async function refresh(req, res) {
 
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: REFRESH_TOKEN_EXPIRY_MS,
         });
